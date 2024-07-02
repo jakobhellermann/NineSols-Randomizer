@@ -1,11 +1,11 @@
 ﻿using BepInEx;
 using NineSolsAPI;
 
-namespace ExampleMod;
+namespace Randomizer;
 
 [BepInDependency(NineSolsAPICore.PluginGUID)]
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
-public class ExampleMod : BaseUnityPlugin {
+public class Randomizer : BaseUnityPlugin {
     private void Awake() {
         RCGLifeCycle.DontDestroyForever(gameObject);
         Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
