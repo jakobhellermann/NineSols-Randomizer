@@ -6,6 +6,7 @@
         <Version>1.0.0</Version>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
 
         <!--
         linux: <NineSolsPath>/home/user/.local/share/Steam/steamapps/common/Nine Sols</NineSolsPath>
@@ -24,11 +25,17 @@
         <Reference Include="rcg.rcgmakercore.Runtime">
             <HintPath>$(NineSolsPath)/NineSols_Data/Managed/rcg.rcgmakercore.Runtime.dll</HintPath>
         </Reference>
+        <Reference Include="UnityEngine.UI">
+            <HintPath>$(NineSolsPath)/NineSols_Data/Managed/UnityEngine.UI.dll</HintPath>
+        </Reference>
         <Reference Include="RCG_General">
             <HintPath>$(NineSolsPath)/NineSols_Data/Managed/RCG_General.dll</HintPath>
         </Reference>
         <Reference Include="InControl">
             <HintPath>$(NineSolsPath)/NineSols_Data/Managed/InControl.dll</HintPath>
+        </Reference>
+        <Reference Include="guidRef">
+            <HintPath>$(NineSolsPath)/NineSols_Data/Managed/guidRef.dll</HintPath>
         </Reference>
     </ItemGroup>
 
@@ -39,12 +46,16 @@
         <PackageReference Include="UnityEngine.Modules" Version="2022.3.18" IncludeAssets="compile" />
 
         <ProjectReference Include="../../NineSolsAPI/NineSolsAPI/NineSolsAPI.csproj" />
-		<!--<PackageReference Include="NineSolsAPI" Version="0.1.0" />-->
+        <!--<PackageReference Include="NineSolsAPI" Version="0.1.0" />-->
+    </ItemGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="../Resources/monsters.bundle" />
+        <EmbeddedResource Include="../Resources/monsters.json" />
     </ItemGroup>
 
     <Target Name="CopyMod" AfterTargets="PostBuildEvent">
         <Message Importance="high" Text="copying $(TargetPath) to $(CopyDir) ..." />
         <Copy SourceFiles="$(TargetPath)" DestinationFolder="$(CopyDir)" SkipUnchangedFiles="true" />
-        <Copy SourceFiles="$(TargetDir)$(TargetName).pdb" DestinationFolder="$(CopyDir)" SkipUnchangedFiles="true" />
     </Target>
 </Project>
