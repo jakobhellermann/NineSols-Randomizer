@@ -6,6 +6,7 @@
         <Version>1.0.0</Version>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <LangVersion>latest</LangVersion>
+        <Nullable>enable</Nullable>
 
         <!-- todo macOS -->
         <NineSolsPath Condition="'$(OS)' == 'Windows_NT'">C:/Program Files (x86)/Steam/steamapps/common/Nine Sols</NineSolsPath>
@@ -26,6 +27,12 @@
         </Reference>
         <Reference Include="InControl">
             <HintPath>$(NineSolsPath)/NineSols_Data/Managed/InControl.dll</HintPath>
+        </Reference>
+        <Reference Include="UniTask">
+            <HintPath>$(NineSolsPath)/NineSols_Data/Managed/UniTask.dll</HintPath>
+        </Reference>
+        <Reference Include="Newtonsoft.Json">
+            <HintPath>$(NineSolsPath)/NineSols_Data/Managed/Newtonsoft.Json.dll</HintPath>
         </Reference>
     </ItemGroup>
 
