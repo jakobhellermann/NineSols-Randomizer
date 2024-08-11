@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using BepInEx;
 using ExampleMod;
 using HarmonyLib;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
 using NineSolsAPI;
 using NineSolsAPI.Utils;
 using RCGFSM.Items;
@@ -21,60 +17,8 @@ namespace Randomizer;
 [BepInPlugin(PluginInfo.PLUGIN_GUID, PluginInfo.PLUGIN_NAME, PluginInfo.PLUGIN_VERSION)]
 [HarmonyPatch]
 public class Randomizer : BaseUnityPlugin {
-    [HarmonyPatch(typeof(GeneralInteraction), "InteractedImplementation")]
-    [HarmonyPrefix]
-    private static bool I(ref GeneralInteraction __instance) {
-        try {
-            ToastManager.Toast($"interacted {__instance.OnInteracted.m_Calls.m_RuntimeCalls.Count}");
-        } catch (Exception e) {
-            ToastManager.Toast(e);
-        }
-
-        return true;
-    }
-
-
     private Harmony harmony = null!;
 
-
-    public class IgnoreTypeContractResolver(string[] typesToIgnore, string[] fieldsToIgnore) : DefaultContractResolver {
-        protected override JsonProperty CreateProperty(MemberInfo member, MemberSerialization memberSerialization) {
-            var property = base.CreateProperty(member, memberSerialization);
-
-            if (Array.Exists(typesToIgnore, t => property.PropertyType?.Name == t))
-                property.ShouldSerialize = _ => false;
-            return property;
-        }
-
-        protected override IList<JsonProperty> CreateProperties(Type type, MemberSerialization memberSerialization) {
-            // Get all the fields of the specified type
-            var fields = type.GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
-
-            var jsonProperties = new List<JsonProperty>();
-            foreach (var field in fields) {
-                if (fieldsToIgnore.Contains(field.Name)) continue;
-
-
-                var jsonProperty = base.CreateProperty(field, memberSerialization);
-                jsonProperty.Readable = true;
-                jsonProperty.Writable = true;
-                jsonProperties.Add(jsonProperty);
-            }
-
-            return jsonProperties;
-        }
-    }
-
-    private class FlagFieldConverter<T> : JsonConverter<FlagField<T>> {
-        public override void WriteJson(JsonWriter writer, FlagField<T>? value, JsonSerializer serializer) {
-            serializer.Serialize(writer, value != null ? value.CurrentValue : null);
-        }
-
-        public override FlagField<T>? ReadJson(JsonReader reader, Type objectType, FlagField<T>? existingValue,
-            bool hasExistingValue,
-            JsonSerializer serializer) =>
-            throw new NotImplementedException();
-    }
 
     private void Awake() {
         Log.Init(Logger);
@@ -83,42 +27,16 @@ public class Randomizer : BaseUnityPlugin {
 
         Logger.LogInfo($"Plugin {PluginInfo.PLUGIN_GUID} is loaded!");
 
-        var allFlags = GameConfig.Instance.allGameFlags;
-
-        try {
-            ToastManager.Toast(" doing");
-            var json = JsonConvert.SerializeObject(allFlags.flagDict, Formatting.Indented, new JsonSerializerSettings {
-                ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-                ContractResolver =
-                    new IgnoreTypeContractResolver(
-                        ["AsyncOperationHandle"],
-                        ["onChangeActionDict", "propertyCache"]
-                    ),
-                Converters = [
-                    // new FlagFieldConverter<FlagField<bool>>(),
-                    // new FlagFieldConverter<FlagField<int>>(),
-                ],
-            });
-            ToastManager.Toast("writing");
-            File.WriteAllText("/home/jakob/allFlags.json", json);
-            ToastManager.Toast("gc");
-            GC.Collect();
-            ToastManager.Toast("done");
-        } catch (Exception e) {
-            ToastManager.Toast(e);
-        }
-
-        List<ItemData> items = [];
+        List<GameFlagDescriptable> items = [];
         foreach (var flag in GameConfig.Instance.allGameFlags.Flags)
-            if (flag is ItemData item)
+            if (flag is ReceiveItemData item) {
+                // ToastManager.Toast(item);
                 items.Add(item);
+            }
 
-        ToastManager.Toast(items.Count);
+        // ToastManager.Toast(items.Count);
 
-
-        ToastManager.Toast(DropItemCollection.Instance.healthDropPrefabs.Count);
-
-        KeybindManager.Add(this, () => { GameCore.Instance.DiscardUnsavedFlagsAndReset(); }, KeyCode.I);
+        KeybindManager.Add(this, () => GameCore.Instance.DiscardUnsavedFlagsAndReset(), KeyCode.I);
 
         KeybindManager.Add(this, () => {
             const string path =
@@ -132,7 +50,6 @@ public class Randomizer : BaseUnityPlugin {
 
                 var getItemAction = fsm.fsm.GetStateByName("Picking").GetActionByName<PickItemAction>("GetItem");
                 getItemAction.pickItemData = items[Random.Range(0, items.Count)];
-                // ToastManager.Toast(getItemAction.pickItemData);
                 var provider = AccessTools.FieldRefAccess<PickItemAction, ItemProvider>("itemProvider")
                     .Invoke(getItemAction);
                 provider.item = getItemAction.pickItemData;
