@@ -1,6 +1,6 @@
 ﻿using HarmonyLib;
 
-namespace ExampleMod;
+namespace Randomizer;
 
 [HarmonyPatch]
 public class Patches {
